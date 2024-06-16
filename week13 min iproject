@@ -1,0 +1,143 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Define constants
+#define TABLE_SIZE 10
+#define LOAD_FACTOR_THRESHOLD 0.7
+
+// Node for linked list (for chaining)
+typedef struct Node {
+    int key;
+    struct Node* next;
+} Node;
+
+// Hash table entry for open addressing
+typedef struct {
+    int key;
+    int isOccupied;
+} HashEntry;
+
+// Hash table for chaining
+typedef struct {
+    Node* head;
+} HashTableChaining[TABLE_SIZE];
+
+// Function prototypes
+int hashFunction(int key);
+void initHashTableOpenAddressing(HashEntry* table);
+void insertOpenAddressing(HashEntry* table, int key);
+int searchOpenAddressing(HashEntry* table, int key);
+void initHashTableChaining(HashTableChaining table);
+void insertChaining(HashTableChaining table, int key);
+int searchChaining(HashTableChaining table, int key);
+void rehash(HashEntry** table, int* tableSize);
+
+// Main function
+int main() {
+    // Open addressing example
+    HashEntry hashTableOpenAddressing[TABLE_SIZE];
+    initHashTableOpenAddressing(hashTableOpenAddressing);
+    insertOpenAddressing(hashTableOpenAddressing, 5);
+    insertOpenAddressing(hashTableOpenAddressing, 15);
+    printf("Search 5 in Open Addressing: %d\n", searchOpenAddressing(hashTableOpenAddressing, 5));
+
+    // Chaining example
+    HashTableChaining hashTableChaining;
+    initHashTableChaining(hashTableChaining);
+    insertChaining(hashTableChaining, 5);
+    insertChaining(hashTableChaining, 15);
+    printf("Search 5 in Chaining: %d\n", searchChaining(hashTableChaining, 5));
+
+    return 0;
+}
+
+// Hash function
+int hashFunction(int key) {
+    return key % TABLE_SIZE;
+}
+
+// Open addressing functions
+void initHashTableOpenAddressing(HashEntry* table) {
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        table[i].key = -1;
+        table[i].isOccupied = 0;
+    }
+}
+
+void insertOpenAddressing(HashEntry* table, int key) {
+    int index = hashFunction(key);
+    while (table[index].isOccupied) {
+        index = (index + 1) % TABLE_SIZE;
+    }
+    table[index].key = key;
+    table[index].isOccupied = 1;
+}
+
+int searchOpenAddressing(HashEntry* table, int key) {
+    int index = hashFunction(key);
+    int startIndex = index;
+    while (table[index].isOccupied) {
+        if (table[index].key == key) {
+            return 1;
+        }
+        index = (index + 1) % TABLE_SIZE;
+        if (index == startIndex) {
+            break;
+        }
+    }
+    return 0;
+}
+
+// Chaining functions
+void initHashTableChaining(HashTableChaining table) {
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        table[i].head = NULL;
+    }
+}
+
+void insertChaining(HashTableChaining table, int key) {
+    int index = hashFunction(key);
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->key = key;
+    newNode->next = table[index].head;
+    table[index].head = newNode;
+}
+
+int searchChaining(HashTableChaining table, int key) {
+    int index = hashFunction(key);
+    Node* current = table[index].head;
+    while (current) {
+        if (current->key == key) {
+            return 1;
+        }
+        current = current->next;
+    }
+    return 0;
+}
+
+// Rehashing function
+void rehash(HashEntry** table, int* tableSize) {
+    int newTableSize = (*tableSize) * 2;
+    HashEntry* newTable = (HashEntry*)malloc(newTableSize * sizeof(HashEntry));
+    for (int i = 0; i < newTableSize; i++) {
+        newTable[i].key = -1;
+        newTable[i].isOccupied = 0;
+    }
+
+    for (int i = 0; i < *tableSize; i++) {
+        if ((*table)[i].isOccupied) {
+            int key = (*table)[i].key;
+            int index = key % newTableSize;
+            while (newTable[index].isOccupied) {
+                index = (index + 1) % newTableSize;
+            }
+            newTable[index].key = key;
+            newTable[index].isOccupied = 1;
+        }
+    }
+
+    free(*table);
+    *table = newTable;
+    *tableSize = newTableSize;
+}
