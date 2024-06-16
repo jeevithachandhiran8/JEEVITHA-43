@@ -6,11 +6,9 @@ int main() {
 
     // Prompt the user to enter the temperature
     printf("Enter the temperature in centigrade: ");
-    
     // Read the input temperature from the user
     scanf("%f", &temperature);
-
-    // Determine and display the temperature state
+   // Determine and display the temperature state
     if (temperature < 0) {
         printf("Freezing weather.\n");
     } else if (temperature < 10) {
@@ -24,7 +22,6 @@ int main() {
     } else {
         printf("Its Very Hot.\n");
     }
-
     return 0;
 }
 
